@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudOps Dashboard | DevOps + AIOps + GreenOps</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #10b981;
+            --aiops: #8b5cf6;
+            --greenops: #059669;
+            --devops: #3b82f6;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --dark-card: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light-bg);
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        /* GreenOps: Dark mode preference */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: var(--dark-bg);
+                color: #cbd5e1;
+            }
+            .card, .metrics-card, .cloud-card {
+                background: var(--dark-card);
+            }
+        }
+
+        /* GreenOps: Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .tagline {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .devops-tag { background: var(--devops); }
+        .aiops-tag { background: var(--aiops); }
+        .greenops-tag { background: var(--greenops); }
+        .cloud-tag { background: #f59e0b; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h3 {
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h3 i {
+            font-size: 1.2em;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            background: #f1f5f9;
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        .cloud-providers {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .cloud-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            width: 120px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .cloud-logo {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .aws { color: #FF9900; }
+        .azure { color: #0078D4; }
+        .gcp { color: #4285F4; }
+        .openshift { color: #EE0000; }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .primary-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .secondary-btn {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .aiops-btn {
+            background: var(--aiops);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .logs {
+            background: #1e293b;
+            color: #cbd5e1;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding-left: 10px;
+            border-left: 3px solid;
+        }
+
+        .info { border-color: var(--primary); }
+        .success { border-color: var(--secondary); }
+        .warning { border-color: #f59e0b; }
+        .error { border-color: #ef4444; }
+        .ai { border-color: var(--aiops); }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #64748b;
+            font-size: 0.9em;
+        }
+
+        .carbon-footprint {
+            background: linear-gradient(135deg, var(--greenops), #10b981);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: white;
+            width: 35%;
+            border-radius: 5px;
+        }
+
+        /* AIOps Anomaly Detection Styles */
+        .anomaly-detected {
+            animation: pulse 2s infinite;
+            border: 2px solid #ef4444;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .optimized {
+            background: linear-gradient(135deg, var(--secondary), #34d399);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cloud"></i> CloudOps Dashboard</h1>
+            <p>Unified Platform for DevOps, AIOps, GreenOps & Multi-Cloud Management</p>
+            <div class="tagline">
+                <span class="tag devops-tag"><i class="fas fa-code-branch"></i> DevOps</span>
+                <span class="tag aiops-tag"><i class="fas fa-brain"></i> AIOps</span>
+                <span class="tag greenops-tag"><i class="fas fa-leaf"></i> GreenOps</span>
+                <span class="tag cloud-tag"><i class="fas fa-cloud"></i> Multi-Cloud</span>
+            </div>
+        </header>
+
+        <div class="dashboard">
+            <!-- DevOps Metrics Card -->
+            <div class="card">
+                <h3><i class="fas fa-tachometer-alt"></i> DevOps Metrics</h3>
+                <div class="metrics">
+                    <div class="metric-item">
+                        <div class="metric-value" id="deploymentRate">95%</div>
+                        <div class="metric-label">Deployment Success</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="leadTime">2.4h</div>
+                        <div class="metric-label">Lead Time</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="availability">99.9%</div>
+                        <div class="metric-label">Availability</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="incidentCount">3</div>
+                        <div class="metric-label">Active Incidents</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AIOps Intelligence Card -->
+            <div class="card">
+                <h3><i class="fas fa-brain"></i> AIOps Intelligence</h3>
+                <div id="aiopsStatus">
+                    <p>Monitoring system behavior for anomalies...</p>
+                    <div class="metrics">
+                        <div class="metric-item" id="anomalyScore">
+                            <div class="metric-value">12%</div>
+                            <div class="metric-label">Anomaly Score</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="predictedIssues">1</div>
+                            <div class="metric-label">Predicted Issues</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="logs" id="aiopsLogs">
+                    <div class="log-entry info">[AIOps] Monitoring initialized</div>
+                    <div class="log-entry success">[AIOps] Pattern analysis running</div>
+                    <div class="log-entry ai">[ML Model] Predicting workload patterns</div>
+                </div>
+            </div>
+
+            <!-- GreenOps & Cloud Card -->
+            <div class="card">
+                <h3><i class="fas fa-leaf"></i> GreenOps & Cloud</h3>
+                <div class="carbon-footprint">
+                    <p>Carbon Footprint Reduction</p>
+                    <div class="progress-bar">
+                        <div class="progress"></div>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 0.9em;">35% less than industry average</p>
+                </div>
+                
+                <h4 style="margin: 20px 0 10px 0;"><i class="fas fa-cloud"></i> Multi-Cloud Providers</h4>
+                <div class="cloud-providers">
+                    <div class="cloud-card">
+                        <div class="cloud-logo aws"><i class="fab fa-aws"></i></div>
+                        <div>AWS</div>
+                        <small id="awsStatus">Optimized</small>
+                    </div>
+                    <div class="cloud-card">
+                        <div class="cloud-logo azure"><i class="fab fa-microsoft"></i></div>
+                        <div>Azure</div>
+                        <small id="azureStatus">Running</small>
+                    </div>
+                    <div class="cloud-card">
+                        <div class="cloud-logo gcp"><i class="fab fa-google"></i></div>
+                        <div>GCP</div>
+                        <small id="gcpStatus">Optimized</small>
+                    </div>
+                    <div class="cloud-card">
+                        <div class="cloud-logo openshift"><i class="fas fa-box"></i></div>
+                        <div>OpenShift</div>
+                        <small id="openshiftStatus">Active</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn primary-btn" onclick="simulateDeployment()">
+                <i class="fas fa-rocket"></i> Simulate Deployment
+            </button>
+            <button class="btn aiops-btn" onclick="runAIOpsAnalysis()">
+                <i class="fas fa-brain"></i> Run AIOps Analysis
+            </button>
+            <button class="btn secondary-btn" onclick="optimizeResources()">
+                <i class="fas fa-leaf"></i> Optimize Resources (GreenOps)
+            </button>
+            <button class="btn primary-btn" onclick="fetchCloudMetrics()">
+                <i class="fas fa-sync-alt"></i> Refresh Cloud Metrics
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing request...</p>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-history"></i> Activity Log</h3>
+            <div class="logs" id="activityLog">
+                <div class="log-entry info">[System] Dashboard initialized</div>
+                <div class="log-entry info">[GreenOps] Dark mode detection active</div>
+                <div class="log-entry success">[DevOps] CI/CD pipeline connected</div>
+                <div class="log-entry ai">[AIOps] Machine learning models loaded</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>CloudOps Dashboard v1.0 | Demonstrating DevOps, AIOps, GreenOps & Cloud Integration</p>
+            <p>Ready for GitHub Deployment | Containerized & Cloud-Native</p>
+            <p style="margin-top: 10px; font-size: 0.8em;">
+                <i class="fas fa-code-branch"></i> CI/CD Ready | 
+                <i class="fas fa-robot"></i> AI-Powered | 
+                <i class="fas fa-globe"></i> Eco-Friendly | 
+                <i class="fas fa-server"></i> Multi-Cloud
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // DevOps: CI/CD Simulation
+        async function simulateDeployment() {
+            showLoading();
+            logActivity('[DevOps] Starting deployment simulation...', 'info');
+            
+            // Simulate API call to DevOps pipeline
+            setTimeout(() => {
+                updateDevOpsMetrics();
+                logActivity('[DevOps] Deployment successful! Automated tests passed.', 'success');
+                hideLoading();
+                
+                // AIOps: Trigger anomaly detection after deployment
+                setTimeout(checkForAnomalies, 1000);
+            }, 1500);
+        }
+
+        // AIOps: Intelligent Analysis
+        function runAIOpsAnalysis() {
+            showLoading();
+            logActivity('[AIOps] Starting intelligent analysis...', 'ai');
+            
+            // Simulate ML model processing
+            setTimeout(() => {
+                const anomalyScore = Math.floor(Math.random() * 30);
+                document.getElementById('anomalyScore').querySelector('.metric-value').textContent = anomalyScore + '%';
+                
+                const predictedIssues = Math.floor(Math.random() * 5);
+                document.getElementById('predictedIssues').querySelector('.metric-value').textContent = predictedIssues;
+                
+                // AIOps: Pattern recognition
+                if (anomalyScore > 20) {
+                    logActivity('[AIOps] ⚠️ Anomaly detected! Auto-remediation initiated.', 'warning');
+                    document.getElementById('anomalyScore').classList.add('anomaly-detected');
+                    
+                    // Auto-remediation simulation
+                    setTimeout(autoRemediate, 2000);
+                } else {
+                    logActivity('[AIOps] System behavior normal. No anomalies detected.', 'success');
+                }
+                
+                // AIOps: Predictive analytics log
+                logActivity('[AIOps] Predictive model suggests optimal scaling time: 14:00 UTC', 'ai');
+                
+                hideLoading();
+            }, 2000);
+        }
+
+        // GreenOps: Resource Optimization
+        function optimizeResources() {
+            showLoading();
+            logActivity('[GreenOps] Starting resource optimization...', 'info');
+            
+            // Simulate optimization across cloud providers
+            setTimeout(() => {
+                // Reduce resource usage
+                document.getElementById('awsStatus').textContent = 'Optimized';
+                document.getElementById('gcpStatus').textContent = 'Optimized';
+                document.querySelector('.carbon-footprint .progress').style.width = '45%';
+                
+                // GreenOps: Energy savings calculation
+                const savings = Math.floor(Math.random() * 20) + 30;
+                logActivity(`[GreenOps] Resources optimized! Estimated energy savings: ${savings}%`, 'success');
+                
+                // Update DevOps metrics with GreenOps impact
+                document.getElementById('leadTime').textContent = '2.1h';
+                document.getElementById('availability').textContent = '99.95%';
+                
+                // Visual feedback
+                document.querySelectorAll('.cloud-card').forEach(card => {
+                    card.classList.add('optimized');
+                    setTimeout(() => card.classList.remove('optimized'), 2000);
+                });
+                
+                hideLoading();
+            }, 1800);
+        }
+
+        // Cloud: Multi-cloud metrics
+        async function fetchCloudMetrics() {
+            showLoading();
+            logActivity('[Cloud] Fetching multi-cloud metrics...', 'info');
+            
+            // Simulate API calls to different cloud providers
+            const clouds = [
+                { id: 'awsStatus', name: 'AWS', api: 'https://api.example.com/aws/metrics' },
+                { id: 'azureStatus', name: 'Azure', api: 'https://api.example.com/azure/status' },
+                { id: 'gcpStatus', name: 'GCP', api: 'https://api.example.com/gcp/health' },
+                { id: 'openshiftStatus', name: 'OpenShift', api: 'https://api.example.com/openshift/metrics' }
+            ];
+            
+            clouds.forEach((cloud, index) => {
+                setTimeout(() => {
+                    const statuses = ['Healthy', 'Optimized', 'Running', 'Active', 'Stable'];
+                    const status = statuses[Math.floor(Math.random() * statuses.length)];
+                    document.getElementById(cloud.id).textContent = status;
+                    logActivity(`[Cloud] ${cloud.name} status: ${status}`, 'info');
+                }, index * 500);
+            });
+            
+            // Update DevOps metrics based on cloud health
+            setTimeout(() => {
+                document.getElementById('deploymentRate').textContent = '96%';
+                logActivity('[Cloud] All cloud providers reporting healthy status', 'success');
+                hideLoading();
+            }, 2500);
+        }
+
+        // AIOps: Automated Anomaly Detection
+        function checkForAnomalies() {
+            const hasAnomaly = Math.random() > 0.7;
+            if (hasAnomaly) {
+                logActivity('[AIOps] ⚠️ Auto-detected performance anomaly in cloud services', 'warning');
+                document.getElementById('incidentCount').textContent = 
+                    parseInt(document.getElementById('incidentCount').textContent) + 1;
+                
+                // AIOps: Auto-create incident and suggest fix
+                setTimeout(() => {
+                    logActivity('[AIOps] 🔧 Auto-suggested fix: Scale compute resources by 15%', 'ai');
+                }, 1000);
+            }
+        }
+
+        // AIOps: Auto-remediation
+        function autoRemediate() {
+            logActivity('[AIOps] 🛠️ Executing auto-remediation...', 'ai');
+            setTimeout(() => {
+                document.getElementById('anomalyScore').classList.remove('anomaly-detected');
+                document.getElementById('anomalyScore').querySelector('.metric-value').textContent = '8%';
+                logActivity('[AIOps] ✅ Anomaly resolved via auto-scaling', 'success');
+            }, 1500);
+        }
+
+        // DevOps: Update metrics dynamically
+        function updateDevOpsMetrics() {
+            const metrics = ['deploymentRate', 'leadTime', 'availability', 'incidentCount'];
+            metrics.forEach(metric => {
+                const element = document.getElementById(metric);
+                const current = element.textContent;
+                
+                if (metric === 'deploymentRate') {
+                    element.textContent = (95 + Math.floor(Math.random() * 3)) + '%';
+                } else if (metric === 'leadTime') {
+                    element.textContent = (2.3 + Math.random() * 0.3).toFixed(1) + 'h';
+                } else if (metric === 'availability') {
+                    element.textContent = '99.' + (90 + Math.floor(Math.random() * 9)) + '%';
+                }
+            });
+        }
+
+        // Utility Functions
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function logActivity(message, type = 'info') {
+            const log = document.getElementById('activityLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${getTimestamp()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function getTimestamp() {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Initialize with simulated data
+        window.onload = function() {
+            // GreenOps: Check user preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                logActivity('[GreenOps] Dark mode enabled for energy savings', 'success');
+            }
+            
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                logActivity('[GreenOps] Reduced motion enabled for accessibility', 'success');
+            }
+            
+            // AIOps: Start periodic monitoring
+            setInterval(checkForAnomalies, 10000);
+            
+            // Cloud: Initial status check
+            setTimeout(fetchCloudMetrics, 2000);
+        };
+    </script>
+</body>
+</html>
