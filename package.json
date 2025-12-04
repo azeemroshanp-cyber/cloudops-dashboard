@@ -4,24 +4,13 @@
   "description": "DevOps + AIOps + GreenOps + Cloud Dashboard",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve .",
-    "test": "echo \"No tests specified\" && exit 0"
+    "start": "npx http-server -p 8080"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^14.1.1"
   },
   "engines": {
     "node": ">=14.0.0"
-  },
-  "keywords": [
-    "devops",
-    "aiops",
-    "greenops",
-    "cloud",
-    "dashboard",
-    "openshift"
-  ],
-  "author": "Your Name",
-  "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {
-    "serve": "^14.0.0"
   }
 }
